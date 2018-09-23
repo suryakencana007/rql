@@ -354,16 +354,20 @@ func (p *Parser) sort(fields []string) string {
 func (p *parseState) and(f map[string]interface{}) {
     var i int
     for k, v := range f {
-        if i > 0 {
-            p.WriteString(" AND ")
+        f := func() {
+            if i > 0 {
+                p.WriteString(" AND ")
+            }
         }
         k = p.ColumnFn(k)
         switch {
         case k == p.op(OR):
+            f()
             terms, ok := v.([]interface{})
             expect(ok, "$or must be type array")
             p.or(terms)
         case p.fields[k] != nil:
+            f()
             expect(p.fields[k].Filterable, "field %q is not filterable", k)
             p.field(p.fields[k], v)
         default:
